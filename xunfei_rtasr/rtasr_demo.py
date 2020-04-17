@@ -80,11 +80,13 @@ class Client():
                     # print "rtasr result: " + result
                     data = json.loads(result_dict['data'])['cn']['st']
                     data_type = data['type']
-                    data_rt = data['rt']
-                    st = []
-                    for x in data_rt[0]['ws']:
-                        st.append(x['cw'][0]['w'])
-                    print ''.join(st)
+                    # only print each complete sentence.
+                    if data_type == '0':
+                        data_rt = data['rt']
+                        st = []
+                        for x in data_rt[0]['ws']:
+                            st.append(x['cw'][0]['w'])
+                        print ''.join(st)
 
                 if result_dict["action"] == "error":
                     print "rtasr error: " + result
