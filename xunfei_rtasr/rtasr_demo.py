@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import hmac
+import importlib
 import json
 import logging
 import sys
@@ -16,7 +17,7 @@ import websocket
 from websocket import create_connection
 
 from xunfei_rtasr.key_config import app_id, api_key
-import importlib
+from xunfei_rtasr.microphone_stream import MicrophoneStream
 
 importlib.reload(sys)
 # sys.setdefaultencoding("utf8")
@@ -64,6 +65,19 @@ class Client():
         self.ws.send(bytes(end_tag, encoding='utf-8'))
         print("send end tag success")
 
+    def send_mic(self):
+        mic_stream = MicrophoneStream(16000, 1280, devidx=9)
+        mic_stream.__enter__()
+        try:
+            for chunk in mic_stream.generator():
+                if not chunk:
+                    break
+                self.ws.send(chunk)
+        finally:
+            mic_stream.__exit__()
+        self.ws.send(bytes(end_tag, encoding='utf-8'))
+        print("send end tag success")
+
     def recv(self):
         try:
             while self.ws.connected:
@@ -103,4 +117,8 @@ class Client():
 
 if __name__ == '__main__':
     client = Client()
-    client.send(file_path)
+    from_mic = True
+    if from_mic:
+        client.send_mic()
+    else:
+        client.send(file_path)
